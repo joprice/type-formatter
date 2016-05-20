@@ -1,6 +1,14 @@
 
+val scalaV = "2.11.8"
+
+lazy val root = plugin.in(file("."))
+  .settings(
+    crossScalaVersions := Seq(scalaV, "2.10.6")
+  )
+  .aggregate(plugin, test)
+
 lazy val commonSettings = Seq(
-  scalaVersion := "2.11.8",
+  scalaVersion := scalaV,
   organization := "com.joprice",
   version := "0.0.1-SNAPSHOT"
 )
@@ -11,7 +19,6 @@ lazy val plugin = project
   )
   .settings(commonSettings)
   .settings(
-    crossScalaVersions := Seq(scalaVersion.value, "2.10.6"),
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
