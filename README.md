@@ -1,6 +1,8 @@
 # type-formatter
 Scala compiler plugin to format type errors
 
+**This is a proof of concept and has not been tested against a large project. Use at your own risk.**
+
 This plugin hijacks the compiler's error reporting to improve the readability of symbolic infix types:
 
 Before:
