@@ -1,0 +1,4 @@
+<plugin>
+    <name>type-formatter</name>
+    <classname>com.joprice.TypeFormatterPlugin</classname>
+</plugin>
