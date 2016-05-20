@@ -26,7 +26,6 @@ class TypeFormatterPlugin(val global: Global) extends Plugin { plugin =>
 
     // selected helpers taken from lihaoyi's pprint https://github.com/lihaoyi/upickle-pprint/blob/c3227d34547fe974a47f74f537be4cf6eaefbc22/pprint/shared/src/main/scala-2.11/pprint/TPrintImpl.scala
     override def foundReqMsg(found: Type, req: Type): String = {
-      println(global.currentSource)
 
       def isSymbolic(sym: Symbol) = sym.name.encodedName.toString != sym.name.decodedName.toString
 

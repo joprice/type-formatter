@@ -6,9 +6,12 @@ lazy val commonSettings = Seq(
 )
 
 lazy val plugin = project
+  .settings(
+    name := "type-formatter"
+  )
   .settings(commonSettings)
   .settings(
-    //crossScalaVersions := Seq(scalaVersion.value, "2.10.6"),
+    crossScalaVersions := Seq(scalaVersion.value, "2.10.6"),
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
