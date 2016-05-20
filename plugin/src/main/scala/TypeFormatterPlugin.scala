@@ -5,12 +5,54 @@ import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 import scala.tools.nsc._
 import scala.tools.nsc.typechecker.Analyzer
 
-class TypeFormatterPlugin(val global: Global) extends Plugin { plugin =>
+
+trait Formatter { self: Analyzer =>
   import global._
+  import definitions._
+
+  def isSymbolic(sym: Symbol) = sym.name.encodedName.toString != sym.name.decodedName.toString
+
+  def printSym(sym: Symbol) = sym.name.decodedName.toString
+
+  def formatInfix(t: Type): String = t match {
+    case TypeRef(_, sym, List(left, right)) if isSymbolic(sym) =>
+      s"${formatInfix(left)} ${printSym(sym)} ${formatInfix(right)}"
+    case TypeRef(_, sym, args) if args.nonEmpty =>
+      args.map(formatInfix).mkString(s"${printSym(sym)}[", ",", "]")
+    case other =>
+      other.toLongString
+  }
+
+}
+
+class TypeFormatterPlugin(val global: Global) extends Plugin { plugin =>
 
   val analyzer = new {
     val global = plugin.global
-  } with Analyzer {
+  } with Analyzer with Formatter {
+    import global._
+
+    override def NoImplicitFoundError(tree: Tree, param: Symbol)(implicit context: Context): Unit = {
+      def errMsg = {
+        val paramName = param.name
+        val paramTp = param.tpe
+        def evOrParam = (
+          if (paramName startsWith nme.EVIDENCE_PARAM_PREFIX)
+            "evidence parameter of type"
+          else
+            s"parameter $paramName:")
+        val symbol = paramTp.typeSymbolDirect
+        symbol match {
+          //TODO: override here for implicitNotFound annotations
+          case ImplicitNotFoundMsg(msg) =>
+            def typeArgsAtSym(paramTp: Type) = paramTp.baseType(symbol).typeArgs
+            msg.format(typeArgsAtSym(paramTp).map(formatInfix))
+          case _ => s"could not find implicit value for $evOrParam ${formatInfix(paramTp)}"
+        }
+      }
+      ErrorUtils.issueNormalTypeError(tree, errMsg)
+    }
+
     import global._
 
     private object DealiasedType extends TypeMap {
@@ -26,17 +68,6 @@ class TypeFormatterPlugin(val global: Global) extends Plugin { plugin =>
 
     // selected helpers taken from lihaoyi's pprint https://github.com/lihaoyi/upickle-pprint/blob/c3227d34547fe974a47f74f537be4cf6eaefbc22/pprint/shared/src/main/scala-2.11/pprint/TPrintImpl.scala
     override def foundReqMsg(found: Type, req: Type): String = {
-
-      def isSymbolic(sym: Symbol) = sym.name.encodedName.toString != sym.name.decodedName.toString
-
-      def printSym(sym: Symbol) = sym.name.decodedName.toString
-
-      def formatInfix(t: Type): String = t match {
-        case TypeRef(pre, sym, List(left, right)) if isSymbolic(sym) =>
-          s"${formatInfix(left)} ${printSym(sym)} ${formatInfix(right)}"
-        case other => other.toLongString
-      }
-
       def explainAlias(tp: Type) = {
         // Don't automatically normalize standard aliases; they still will be
         // expanded if necessary to disambiguate simple identifiers.
