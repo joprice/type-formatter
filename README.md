@@ -3,6 +3,8 @@ Scala compiler plugin to format type errors
 
 **This is a proof of concept and has not been tested against a large project. Use at your own risk.**
 
+Note: This feature was added directly to the compiler by @VladUreche and is now available in the 2.12.2 https://github.com/scala/scala/pull/5589/files
+
 This plugin hijacks the compiler's error reporting to improve the readability of symbolic infix types:
 
 Before:
